@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 import streamlit as st
 import os
 os.system("playwright install chromium")
-os.system("playwright install-deps")
+
 from playwright.sync_api import Error as PlaywrightError
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from playwright.sync_api import sync_playwright
