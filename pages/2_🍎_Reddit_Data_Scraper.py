@@ -80,6 +80,7 @@ def scrape_old_reddit(days_limit: int, max_posts: int = MAX_POSTS) -> tuple[list
             while next_page_url and len(posts) < max_posts and not hit_time_boundary:
                 page.goto(next_page_url, wait_until="domcontentloaded", timeout=45000)
                 rand_sleep(page)
+                page.screenshot(path="debug_eye.png") # <--- 这就是我们新加的监控探头
                 things = page.locator("div.thing")
                 total = things.count()
                 if total == 0:
@@ -173,6 +174,9 @@ def render_cards(rows: list[dict[str, str]], columns_count: int = 3) -> None:
 def main() -> None:
     st.set_page_config(page_title="📺 Reddit 中文学习新帖看板", layout="wide")
     st.title("📺 Reddit 中文学习新帖看板")
+    import os
+    if os.path.exists("debug_eye.png"):
+        st.image("debug_eye.png", caption="这是云端机器人看到的真实画面！")
 
     if "rows" not in st.session_state:
         st.session_state.rows = []
