@@ -20,9 +20,10 @@ if start_btn:
         url = "https://www.reddit.com/r/ChineseLanguage/new.json?limit=100"
         
         # 伪装成普通浏览器的头部信息（这是通过保安亭的通行证）
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-        }
+        # 亮明私人专属工具身份，Reddit 反而会放行
+     headers = {
+         "User-Agent": "python:lilys-insight-hub:v1.0.0 (by /u/lily_creator)"
+     }
         
         try:
             # 瞬间发送请求并拿回数据
