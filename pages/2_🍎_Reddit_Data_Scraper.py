@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 import streamlit as st
 import os
 os.system("playwright install chromium")
+os.system("playwright install-deps")
 from playwright.sync_api import Error as PlaywrightError
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from playwright.sync_api import sync_playwright
@@ -65,7 +66,7 @@ def scrape_old_reddit(days_limit: int, max_posts: int = MAX_POSTS) -> tuple[list
     next_page_url = TARGET_URL
     hit_time_boundary = False
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=True)
+        browser = playwright.chromium.launch(headless=True, args=["--no-sandbox", "--disable-dev-shm-usage"])
         context = browser.new_context(
             user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
         )
