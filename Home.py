@@ -25,14 +25,32 @@ st.markdown(
         margin-bottom: 2rem;
         color: #111111;
     }
+    .hero-subtitle {
+        max-width: 760px;
+        margin: -1.2rem auto 2rem;
+        text-align: center;
+        color: #666666;
+        font-size: 1.05rem;
+        line-height: 1.7;
+    }
+    .tool-icon {
+        height: 60px;
+        display: flex;
+        align-items: center;
+        font-size: 2.7rem;
+        line-height: 1;
+    }
     .card-title {
-        font-size: 1.6rem;
+        min-height: 3.1rem;
+        font-size: 1.35rem;
         font-weight: 700;
         margin-top: 0.4rem;
         margin-bottom: 0.4rem;
         color: #111111;
+        line-height: 1.35;
     }
     .card-subtitle {
+        min-height: 3.4rem;
         font-size: 1.02rem;
         color: #444444;
         margin-bottom: 1rem;
@@ -49,9 +67,14 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-left_col, right_col = st.columns(2, gap="large")
+st.markdown(
+    '<div class="hero-subtitle">A collection of AI-powered research and productivity tools built by Lily.</div>',
+    unsafe_allow_html=True,
+)
 
-with left_col:
+youtube_col, reddit_col, auditmind_col = st.columns(3, gap="large")
+
+with youtube_col:
     with st.container(border=True):
         st.image("youtube_logo.png", width=60)
         st.markdown('<div class="card-title">YouTube 数据分析</div>', unsafe_allow_html=True)
@@ -64,7 +87,7 @@ with left_col:
             label="进入 YouTube 分析",
         )
 
-with right_col:
+with reddit_col:
     with st.container(border=True):
         st.image("reddit_logo.png", width=60)
         st.markdown('<div class="card-title">Reddit 数据分析</div>', unsafe_allow_html=True)
@@ -75,4 +98,18 @@ with right_col:
         st.page_link(
             "pages/2_🍎_Reddit_Data_Scraper.py",
             label="进入 Reddit 分析",
+        )
+
+with auditmind_col:
+    with st.container(border=True):
+        st.markdown('<div class="tool-icon">🧾</div>', unsafe_allow_html=True)
+        st.markdown('<div class="card-title">AuditMind</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="card-subtitle">AI 审计工作流与带引用知识库安全演示</div>',
+            unsafe_allow_html=True,
+        )
+        st.link_button(
+            "进入 AuditMind",
+            "https://lily666-lab.github.io/AuditMind/",
+            use_container_width=True,
         )
