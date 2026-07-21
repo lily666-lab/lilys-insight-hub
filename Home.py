@@ -33,6 +33,13 @@ st.markdown(
         font-size: 1.05rem;
         line-height: 1.7;
     }
+    .tool-icon {
+        height: 60px;
+        display: flex;
+        align-items: center;
+        font-size: 2.7rem;
+        line-height: 1;
+    }
     .card-title {
         min-height: 3.1rem;
         font-size: 1.35rem;
@@ -104,5 +111,36 @@ with auditmind_col:
         st.link_button(
             "进入 AuditMind",
             "https://lily666-lab.github.io/AuditMind/",
+            width="stretch",
+        )
+
+st.markdown("<br>", unsafe_allow_html=True)
+_, wangcai_col, miaowu_col, _ = st.columns([0.45, 1, 1, 0.45], gap="large")
+
+with wangcai_col:
+    with st.container(border=True):
+        st.markdown('<div class="tool-icon">🐕</div>', unsafe_allow_html=True)
+        st.markdown('<div class="card-title">旺财 Todo</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="card-subtitle">把任务投喂给旺财，轻松管理每一天</div>',
+            unsafe_allow_html=True,
+        )
+        st.link_button(
+            "进入旺财 Todo",
+            "https://wangcai-todo.basic-coati-8835.chatgpt.site",
+            width="stretch",
+        )
+
+with miaowu_col:
+    with st.container(border=True):
+        st.markdown('<div class="tool-icon">🐱</div>', unsafe_allow_html=True)
+        st.markdown('<div class="card-title">喵呜笔记</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="card-subtitle">随手记录灵感，用分类和标签整理想法</div>',
+            unsafe_allow_html=True,
+        )
+        st.link_button(
+            "进入喵呜笔记",
+            "https://lily666-lab.github.io/miaowu-note/",
             width="stretch",
         )
