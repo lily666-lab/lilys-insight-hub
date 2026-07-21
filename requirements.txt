@@ -5,3 +5,4 @@ youtube-transcript-api
 isodate
 requests
 openpyxl
+playwright>=1.45
