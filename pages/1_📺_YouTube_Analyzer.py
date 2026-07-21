@@ -10,6 +10,8 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from youtube_transcript_api import YouTubeTranscriptApi
 
+from sidebar import render_external_tool_links
+
 try:
     from youtube_transcript_api._errors import (
         CouldNotRetrieveTranscript,
@@ -32,6 +34,8 @@ except Exception:
     TRANSCRIPT_SKIP_EXCEPTIONS = (Exception,)
 
 st.set_page_config(page_title="YouTube 竞品分析工具", layout="wide")
+
+render_external_tool_links()
 
 
 def inject_global_css():

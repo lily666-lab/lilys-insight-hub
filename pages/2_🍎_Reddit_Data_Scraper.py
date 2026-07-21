@@ -11,6 +11,8 @@ from playwright.sync_api import Error as PlaywrightError
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from playwright.sync_api import sync_playwright
 
+from sidebar import render_external_tool_links
+
 
 DEFAULT_TARGET = "ChineseLanguage"
 MAX_POSTS = 300
@@ -22,6 +24,8 @@ st.set_page_config(
     page_icon="R",
     layout="wide",
 )
+
+render_external_tool_links()
 
 
 def inject_theme() -> None:

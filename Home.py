@@ -3,12 +3,16 @@ from pathlib import Path
 
 import streamlit as st
 
+from sidebar import render_external_tool_links
+
 
 st.set_page_config(
     page_title="Lily’s Insight Hub",
     page_icon="✨",
     layout="wide",
 )
+
+render_external_tool_links()
 
 
 def image_data_uri(filename):
