@@ -33,13 +33,6 @@ st.markdown(
         font-size: 1.05rem;
         line-height: 1.7;
     }
-    .tool-icon {
-        height: 60px;
-        display: flex;
-        align-items: center;
-        font-size: 2.7rem;
-        line-height: 1;
-    }
     .card-title {
         min-height: 3.1rem;
         font-size: 1.35rem;
@@ -102,14 +95,14 @@ with reddit_col:
 
 with auditmind_col:
     with st.container(border=True):
-        st.markdown('<div class="tool-icon">🧾</div>', unsafe_allow_html=True)
+        st.image("auditmind_card.png", width=120)
         st.markdown('<div class="card-title">AuditMind</div>', unsafe_allow_html=True)
         st.markdown(
-            '<div class="card-subtitle">AI 审计工作流与带引用知识库安全演示</div>',
+            '<div class="card-subtitle">你的AI审计工作伙伴</div>',
             unsafe_allow_html=True,
         )
         st.link_button(
             "进入 AuditMind",
             "https://lily666-lab.github.io/AuditMind/",
-            use_container_width=True,
+            width="stretch",
         )
