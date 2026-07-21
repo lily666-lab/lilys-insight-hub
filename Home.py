@@ -94,10 +94,10 @@ st.markdown(
         background: #ffffff;
         box-shadow: 0 4px 14px rgba(20, 20, 20, 0.035);
     }
-    div[data-testid="stPageLink"] {
+    [data-testid="stMain"] div[data-testid="stPageLink"] {
         width: 100%;
     }
-    div[data-testid="stPageLink"] a {
+    [data-testid="stMain"] div[data-testid="stPageLink"] a {
         width: 100%;
         height: 2.5rem;
         min-height: 2.5rem;
@@ -111,7 +111,7 @@ st.markdown(
         text-decoration: none;
         transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
     }
-    div[data-testid="stPageLink"] a:hover {
+    [data-testid="stMain"] div[data-testid="stPageLink"] a:hover {
         border-color: #ff4b4b;
         color: #ff4b4b;
         background: #fffafa;
