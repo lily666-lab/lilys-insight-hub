@@ -1,8 +1,12 @@
 import csv
 import io
+import json
+import logging
+import platform
 import random
 import re
 import shutil
+from importlib.metadata import version
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlparse, urlunparse
 
@@ -17,6 +21,73 @@ from sidebar import render_external_tool_links
 DEFAULT_TARGET = "ChineseLanguage"
 MAX_POSTS = 300
 REDDIT_HOSTS = {"reddit.com", "www.reddit.com", "old.reddit.com"}
+
+diagnostic_logger = logging.getLogger("reddit_scraper.diagnostics")
+if not diagnostic_logger.handlers:
+    diagnostic_logger.addHandler(logging.StreamHandler())
+diagnostic_logger.setLevel(logging.INFO)
+diagnostic_logger.propagate = False
+
+
+def log_reddit_page(page, status: int | None, phase: str) -> str:
+    """Log metadata only; never log cookies, credentials, or page contents."""
+    title = ""
+    body = ""
+    count = None
+    try:
+        title = page.title()
+    except PlaywrightError:
+        pass
+    try:
+        body = page.locator("body").inner_text(timeout=2_000)[:20_000].lower()
+    except PlaywrightError:
+        pass
+    try:
+        count = page.locator("div.thing").count()
+    except PlaywrightError:
+        pass
+    path = urlparse(page.url).path.lower()
+    login = path.startswith(("/login", "/account/login")) or any(
+        phrase in (title + " " + body).lower()
+        for phrase in ("log in to use old reddit", "登录以使用旧版 reddit")
+    )
+    blocked = any(phrase in body for phrase in (
+        "you've been blocked by network security", "your request has been blocked",
+    ))
+    if status == 429:
+        reason = "rate_limited"
+    elif status == 403:
+        reason = "forbidden"
+    elif login:
+        reason = "login_required"
+    elif blocked:
+        reason = "access_blocked"
+    elif status is not None and status >= 400:
+        reason = "http_error"
+    elif count:
+        reason = "listing_found"
+    else:
+        reason = "listing_missing"
+    # Query strings can contain authentication parameters; omit them from logs.
+    parsed = urlparse(page.url)
+    safe_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", ""))
+    diagnostic_logger.info(json.dumps({
+        "event": "reddit_page", "phase": phase, "actual_url": safe_url,
+        "title": title, "http_status": status, "login_page": login,
+        "post_elements": count, "reason": reason,
+    }, ensure_ascii=False))
+    return reason
+
+
+def reddit_failure_message(reason: str, status: int | None) -> str:
+    return {
+        "rate_limited": "Reddit 返回 HTTP 429：请求受到限流。请暂停抓取，稍后再试。",
+        "forbidden": "Reddit 返回 HTTP 403：服务器拒绝访问，不能仅凭此确定是 IP 限制还是其他权限问题。",
+        "login_required": "Reddit 返回登录页：当前抓取会话需要身份验证，已停止抓取。",
+        "access_blocked": "Reddit 返回访问拦截提示，已停止抓取。",
+        "http_error": f"Reddit 返回 HTTP {status}，已停止抓取。",
+        "listing_missing": "页面已返回，但未找到 old Reddit 帖子列表；可能是空列表、页面结构变化或其他中间页面，请查看诊断日志。",
+    }.get(reason, "抓取失败，请查看诊断日志。")
 
 
 st.set_page_config(
@@ -281,6 +352,13 @@ def scrape_old_reddit(
             launch_options["executable_path"] = chromium_path
 
         browser = playwright.chromium.launch(**launch_options)
+        diagnostic_logger.info(json.dumps({
+            "event": "reddit_runtime", "python": platform.python_version(),
+            "os": platform.system(), "machine": platform.machine(),
+            "playwright": version("playwright"), "streamlit": version("streamlit"),
+            "browser_path": chromium_path or playwright.chromium.executable_path,
+            "browser_version": browser.version, "headless": headless,
+        }, ensure_ascii=False))
         context = browser.new_context(
             user_agent=(
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -296,11 +374,27 @@ def scrape_old_reddit(
             else route.continue_(),
         )
         page = context.new_page()
+        document_status: int | None = None
+        phase = "navigation"
+
+        def remember_document_response(response):
+            nonlocal document_status
+            if response.request.is_navigation_request() and response.frame == page.main_frame:
+                document_status = response.status
+
+        page.on("response", remember_document_response)
 
         try:
             while next_page_url and len(posts) < max_posts and not hit_time_boundary:
+                document_status = None
+                phase = "navigation"
                 page.goto(next_page_url, wait_until="domcontentloaded", timeout=45_000)
+                reason = log_reddit_page(page, document_status, phase)
+                if reason not in {"listing_found", "listing_missing"}:
+                    return posts, reddit_failure_message(reason, document_status)
+                phase = "listing_wait"
                 page.wait_for_selector("div.thing", timeout=20_000)
+                phase = "parsing"
                 wait_like_a_person(page)
 
                 things = page.locator("div.thing")
@@ -366,8 +460,18 @@ def scrape_old_reddit(
                 wait_like_a_person(page, 0.8, 1.6)
 
         except PlaywrightTimeoutError:
-            return posts, "页面加载超时。Reddit 可能限流、网络不稳定，或这个页面没有 old Reddit 列表结构。"
+            reason = log_reddit_page(page, document_status, phase)
+            if reason not in {"listing_found", "listing_missing"}:
+                return posts, reddit_failure_message(reason, document_status)
+            if phase == "navigation":
+                return posts, "访问 Reddit 时导航超时：未在 45 秒内完成页面导航，请查看日志中的 URL、状态码和页面标题。"
+            if phase == "listing_wait":
+                if reason == "listing_missing":
+                    return posts, reddit_failure_message(reason, document_status)
+                return posts, "已找到帖子元素，但等待其可见时超时，请查看诊断日志。"
+            return posts, "读取帖子或翻页时超时，已保留获取的数据，请查看诊断日志。"
         except PlaywrightError as exc:
+            diagnostic_logger.warning("reddit_playwright_error phase=%s error=%s", phase, type(exc).__name__)
             return posts, f"Playwright 抓取失败：{exc}"
         finally:
             context.close()
